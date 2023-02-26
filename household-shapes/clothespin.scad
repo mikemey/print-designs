@@ -3,10 +3,10 @@ $fn = 64;
 // total length of pin
 length = 80;
 // width of pin
-width = 9.5;
+width = 8.7;
 
 // hole diameter for spring
-spring_d = 6.5;
+spring_d = 7.2;
 
 // spring support width
 spring_support_w = 4.5;
@@ -24,10 +24,10 @@ head_length = 22;
 skip_head_holes_ixs = [0, 3, 6, 13, 19, 20];
 
 // distance from head-end to spring notch center
-middle_length = 16;
+middle_length = 17;
 
 // groove width of bolt notch
-bolt_notch_width = 3;
+bolt_notch_width = 4;
 
 // groove height of bolt notch
 bolt_notch_height = 1;
@@ -36,7 +36,7 @@ bolt_notch_height = 1;
 spacer_l = 6;
 
 // spacer height
-spacer_h = 11;
+spacer_h = 12;
 
 // distance between spacer and mid-point
 spacer_dist = 0.1;
@@ -166,3 +166,11 @@ difference() {
     spring_hole();
     bolt_notch_hole();
 }
+
+module calculate_spring_arm_distance() {
+    center_dist = sqrt((middle_length - bolt_notch_width)^2 + (center_height - bolt_notch_height)^2);
+    tanget_dist = sqrt(center_dist^2 - (spring_d / 2)^2);
+    echo("Distance bolt notch corner closest to spring tangential to spring:", tanget_dist);
+}
+
+calculate_spring_arm_distance();
