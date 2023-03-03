@@ -11,7 +11,7 @@ back_height = 58;
 back_width = 18;
 front_width = 22;
 
-cham = 1.2;
+cham = 1.1;
 back_bevel = 6;
 middle_bevel = 8;
 
@@ -44,6 +44,10 @@ module front_incline_mask() {
     translate([- 1, 0, incline_height])
         rotate([incline_angle, 0, 0])
             cube(s + 2);
+}
+
+module bevel_mask(len, c = cham, orient = ORIENT_X) {
+    chamfer_mask(len, c, orient = orient, center = false);
 }
 
 module side_wall() {
@@ -80,12 +84,11 @@ module side_wall() {
         incl_end_w = (lattice_side_hole_h - incl_start_h) / tan(incline_angle);
         translate([- 1, lattice_border, 2 * lattice_border])
             rotate([90, 0, 90])
-                linear_extrude(wall + 2) {
+                linear_extrude(wall + 2)
                     polygon([
                             [0, 0], [lattice_side_hole_w, 0], [lattice_side_hole_w, lattice_side_hole_h],
                             [incl_end_w, lattice_side_hole_h], [0, incl_start_h]
                         ]);
-                }
     }
 
     module side_wall_lattice() {
@@ -99,20 +102,20 @@ module side_wall() {
 
     module chamfer_side_wall() {
         both_side_of_wall() {
-            chamfer_mask(incline_height, cham, orient = ORIENT_Z, center = false);
+            bevel_mask(incline_height, orient = ORIENT_Z);
         }
         translate([0, 0, incline_height])
             rotate([- incline_angle, 0, 0])
                 both_side_of_wall() {
-                    chamfer_mask(width, cham, orient = ORIENT_Z, center = false);
+                    bevel_mask(width, orient = ORIENT_Z);
                 }
         translate([0, 0, height])
             both_side_of_wall() {
-                chamfer_mask(width, cham, orient = ORIENT_Y, center = false);
+                bevel_mask(width, orient = ORIENT_Y);
             }
         translate([0, middle_y, back_height])
             both_side_of_wall() {
-                chamfer_mask(width, cham, orient = ORIENT_Y, center = false);
+                bevel_mask(width, orient = ORIENT_Y);
             }
     }
 
@@ -124,22 +127,25 @@ module side_wall() {
                     cube([wall, back_length, back_height]);
                     translate([0, 0, back_height])
                         both_side_of_wall() {
-                            chamfer_mask(back_length, cham, orient = ORIENT_Y, center = false);
+                            bevel_mask(back_length, orient = ORIENT_Y);
                         }
                 }
     }
 
     module middle_corner() {
-        translate([0, middle_y, 0])
+        translate([0, middle_y, 0]) {
             rotate([0, 0, - bevel_angle])
                 difference() {
                     middle_length = bevel_length(middle_bevel);
                     cube([wall, middle_length, height]);
                     translate([0, 0, height])
                         both_side_of_wall() {
-                            chamfer_mask(middle_length, cham, orient = ORIENT_Y, center = false);
+                            bevel_mask(middle_length, orient = ORIENT_Y);
                         }
                 }
+            linear_extrude(back_height)
+                polygon([[cham, cham], [middle_bevel, middle_bevel], [cham, middle_bevel]]);
+        }
     }
 
     module back_shoulder() {
@@ -148,7 +154,7 @@ module side_wall() {
                 cube([back_shoulder_length, wall, back_height]);
                 translate([0, 0, back_height])
                     both_side_of_wall(SIDE_Y) {
-                        chamfer_mask(back_shoulder_length, cham, orient = ORIENT_X, center = false);
+                        bevel_mask(back_shoulder_length);
                     }
             }
         }
@@ -160,7 +166,7 @@ module side_wall() {
                 cube([middle_shoulder_length, wall, height]);
                 translate([0, 0, height])
                     both_side_of_wall(SIDE_Y) {
-                        chamfer_mask(middle_shoulder_length, cham, orient = ORIENT_X, center = false);
+                        bevel_mask(middle_shoulder_length);
                     }
             }
         }
@@ -170,9 +176,9 @@ module side_wall() {
         offset = wall / 2;
         module bevel_correction() {
             translate([0, - offset, 0])
-                chamfer_mask(wall, cham, orient = ORIENT_Y, center = false);
+                bevel_mask(wall, orient = ORIENT_Y);
             rotate([0, 0, - bevel_angle])
-                chamfer_mask(wall, cham, orient = ORIENT_Y, center = false);
+                bevel_mask(wall, orient = ORIENT_Y);
 
         }
         translate([0, middle_y, height])
@@ -192,13 +198,13 @@ module side_wall() {
 module bottom() {
     difference() {
         cube([length, width, wall]);
-        chamfer_mask(wall, cham, orient = ORIENT_Z, center = false);
+        bevel_mask(wall, orient = ORIENT_Z);
         translate([length, 0, 0])
-            chamfer_mask(wall, cham, orient = ORIENT_Z, center = false);
+            bevel_mask(wall, orient = ORIENT_Z);
         translate([0, width, 0]) {
-            chamfer_mask(wall, back_bevel, orient = ORIENT_Z, center = false);
+            bevel_mask(wall, back_bevel, orient = ORIENT_Z);
             translate([length, 0, 0])
-                chamfer_mask(wall, back_bevel, orient = ORIENT_Z, center = false);
+                bevel_mask(wall, back_bevel, orient = ORIENT_Z);
         }
     }
 }
@@ -222,7 +228,7 @@ module middle_wall() {
                 cube([middle_len, wall, lattice_border]);
                 translate([0, 0, lattice_border])
                     both_side_of_wall(SIDE_Y) {
-                        chamfer_mask(middle_len, cham, orient = ORIENT_X, center = false);
+                        bevel_mask(middle_len);
                     }
             }
     }
