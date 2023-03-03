@@ -16,6 +16,7 @@ middle_bevel = 8;
 
 incline_height = 42;
 incline_angle = 45;
+bevel_angle = 45;
 
 lattice_border = 7;
 lattice_width = 4.6;
@@ -31,7 +32,7 @@ middle_y = width - wall - back_width - middle_bevel;
 lattice_side_hole_w = width - back_width - 3 * wall - 2 * lattice_border;
 lattice_side_hole_h = height - 3 * lattice_border;
 
-function bevel_length(bevel) = bevel / cos(45);
+function bevel_length(bevel) = bevel / cos(bevel_angle);
 
 module side_wall() {
     difference() {
@@ -45,11 +46,8 @@ module side_wall() {
             back_shoulder();
             middle_shoulder();
         }
-        correct_bevel_edges();
+        correct_wall_corner_bevels();
     }
-    //    color("coral")
-    //        translate([0, width - back_bevel, back_height])
-    //            chamfer_mask(wall, cham, orient = ORIENT_X, center = false);
 }
 
 module basic_side_wall() {
@@ -113,7 +111,7 @@ module chamfer_side_wall() {
 
 module back_corner() {
     translate([0, width - back_bevel, 0])
-        rotate([0, 0, - 45])
+        rotate([0, 0, - bevel_angle])
             difference() {
                 back_length = bevel_length(back_bevel);
                 cube([wall, back_length, back_height]);
@@ -126,7 +124,7 @@ module back_corner() {
 
 module middle_corner() {
     translate([0, middle_y, 0])
-        rotate([0, 0, - 45])
+        rotate([0, 0, - bevel_angle])
             difference() {
                 middle_length = bevel_length(middle_bevel);
                 cube([wall, middle_length, height]);
@@ -161,14 +159,32 @@ module middle_shoulder() {
     }
 }
 
-module correct_bevel_edges() {
-
-}
-
 module both_side_of_wall(v = SIDE_X) {
     children();
     translate(v)
         children();
+}
+
+module correct_wall_corner_bevels() {
+    offset = wall / 2;
+    module bevel_correction() {
+        translate([0, - offset, 0])
+            chamfer_mask(wall, cham, orient = ORIENT_Y, center = false);
+        rotate([0, 0, - bevel_angle])
+            chamfer_mask(wall, cham, orient = ORIENT_Y, center = false);
+
+    }
+    translate([0, middle_y, height])
+        bevel_correction();
+    translate([middle_bevel, middle_y + middle_bevel, height])
+        rotate([0, 0, - bevel_angle])
+            bevel_correction();
+    translate([0, width - back_bevel, back_height])
+        bevel_correction();
+    translate([back_bevel, width, back_height])
+        rotate([0, 0, - bevel_angle])
+            bevel_correction();
+
 }
 
 module bottom() {
@@ -189,7 +205,7 @@ module bottom() {
 
 bottom();
 side_wall();
-//translate([length, 0, 0])
-//    mirror([1, 0, 0])
-//        side_wall();
+translate([length, 0, 0])
+    mirror([1, 0, 0])
+        side_wall();
 
