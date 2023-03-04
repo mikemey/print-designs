@@ -10,7 +10,8 @@ height = 83;
 
 back_height = 58;
 back_width = 18;
-front_width = 22;
+front_width = 23;
+front_panel_height = 10;
 
 cham = 1.1;
 back_bevel = 6;
@@ -35,6 +36,10 @@ separator_wall_offsets = [length / 3, length * 2 / 3];
 separator_wall_height = height - 5;
 separator_wall_lattice_width = 3;
 separator_wall_lattice_hole = 5;
+
+USB_A_SIZE = [5, 12.5, front_panel_height + 2];
+USB_C_SIZE = [8.8, 3, front_panel_height + 2];
+SD_CARD_SIZE = [24.5, 2.5, front_panel_height + 2];
 
 SIDE_X = [wall, 0, 0];
 SIDE_Y = [0, wall, 0];
@@ -230,6 +235,8 @@ module bottom() {
             translate([length, 0, 0])
                 bevel_mask(wall, back_bevel, orient = ORIENT_Z);
         }
+        translate([wall / 2, - 1, - 1])
+            cube([length - wall, front_width + 1, wall + 2]);
     }
 }
 
@@ -408,6 +415,53 @@ module separator_walls() {
     }
 }
 
+module front_panel() {
+    difference() {
+        translate([wall / 2, 0, 0])
+            cube([length - wall, front_width, front_panel_height]);
+        translate([0, front_width / 2, front_panel_height / 2]) {
+            translate([USB_A_SIZE.x * 2, 0, 0])
+                usb_a();
+            translate([USB_A_SIZE.x * 4, 0, 0])
+                usb_a();
+            translate([USB_A_SIZE.x * 6, 0, 0])
+                usb_a();
+            translate([USB_A_SIZE.x * 8.3, 0, 0])
+                double_usb_c();
+            translate([USB_A_SIZE.x * 11, 0, 0])
+                double_usb_c();
+            translate([USB_A_SIZE.x * 15.1, 0, 0]) {
+                y_offset = SD_CARD_SIZE.y * 1.5;
+                translate([0, y_offset, 0])
+                    sd_card();
+                translate([0, - y_offset, 0])
+                    sd_card();
+            }
+        }
+    }
+
+    module usb_a() {
+        cube(USB_A_SIZE, center = true);
+    }
+
+    module usb_c() {
+        cube(USB_C_SIZE, center = true);
+    }
+
+    module sd_card() {
+        cube(SD_CARD_SIZE, center = true);
+    }
+
+    module double_usb_c() {
+        y_offset = USB_A_SIZE.y / 2 - USB_C_SIZE.y / 2;
+        translate([0, y_offset, 0])
+            usb_c();
+        translate([0, - y_offset, 0]) {
+            usb_c();
+        }
+    }
+}
+
 bottom();
 side_wall();
 mirror_offset() { side_wall(); }
@@ -415,3 +469,4 @@ front_wall();
 middle_wall();
 separator_walls();
 back_wall();
+front_panel();
