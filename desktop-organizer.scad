@@ -21,8 +21,8 @@ incline_angle = 45;
 bevel_angle = 45;
 
 lattice_border = 7;
-lattice_width = 4.6;
-lattice_hole = 8.8;
+lattice_width = 4;
+lattice_hole = 8.2;
 
 middle_shoulder_length = 12;
 back_shoulder_length = 10;
@@ -31,10 +31,13 @@ back_hole_height = 25;
 back_hole_upper_len = 50;
 back_hole_lower_len = 35;
 
+separator_wall_offsets = [length / 3, length * 2 / 3];
+separator_wall_height = height - 5;
+separator_wall_lattice_width = 3;
+separator_wall_lattice_hole = 5;
+
 SIDE_X = [wall, 0, 0];
 SIDE_Y = [0, wall, 0];
-
-middle_y = width - wall - back_width - middle_bevel;
 
 function bevel_length(bevel) = bevel / cos(bevel_angle);
 
@@ -62,6 +65,7 @@ module mirror_offset(offset = length) {
 }
 
 module side_wall() {
+    middle_y = width - wall - back_width - middle_bevel;
     lattice_side_hole_w = width - back_width - 3 * wall - 2 * lattice_border;
     lattice_side_hole_h = height - 3 * lattice_border;
 
@@ -97,7 +101,7 @@ module side_wall() {
     }
 
     module side_wall_hole() {
-        incl_start_h = incline_height - 2 * lattice_border - lattice_border / tan((90 + incline_angle) / 2);
+        incl_start_h = incline_height - 2 * lattice_border - lattice_border / tan((180 - incline_angle) / 2);
         incl_end_w = (lattice_side_hole_h - incl_start_h) / tan(incline_angle);
         translate([- 1, lattice_border, 2 * lattice_border])
             rotate([90, 0, 90])
@@ -270,7 +274,7 @@ module front_wall() {
 
 module middle_wall() {
     middle_len = length - 2 * middle_bevel - 2 * middle_shoulder_length;
-    wall_y = middle_y + middle_bevel - wall;
+    wall_y = width - back_width - 2 * wall;
 
     module middle_bottom() {
         cube([middle_len, wall, 2 * lattice_border]);
@@ -350,9 +354,64 @@ module back_wall() {
     }
 }
 
+module separator_walls() {
+    s_wall = wall / 2;
+    wall_y_len = width - back_width - front_width - wall;
+
+    lattice_w = wall_y_len - 2 * wall - 2 * lattice_border;
+    lattice_top_w = width - back_width - 2 * wall - lattice_border
+        - (height - incline_height) / tan(incline_angle)
+        - lattice_border / tan((180 - incline_angle) / 2);
+    lattice_h = separator_wall_height - 3 * lattice_border;
+    lattice_front_h = lattice_h - (lattice_w - lattice_top_w) * tan(incline_angle);
+
+    difference() {
+        translate([0, front_width, 0])
+            for (offset = separator_wall_offsets) {
+                translate([offset, 0, 0])
+                    separator_wall(offset);
+            }
+        translate([0, 0, separator_wall_height - height])
+            front_incline_mask();
+        translate([0, 0, separator_wall_height])
+            cube([length, width, height]);
+    }
+
+    module separator_wall(offset) {
+        difference() {
+            union() {
+                cube([s_wall, wall_y_len, height]);
+                wall_end();
+                translate([0, wall_y_len - wall, 0])
+                    wall_end();
+            }
+            separator_wall_hole();
+        }
+        translate([s_wall, lattice_border + wall, 2 * lattice_border])
+            rotate([0, 0, 90])
+                lattice([lattice_w, s_wall, lattice_h], separator_wall_lattice_width, separator_wall_lattice_hole);
+
+        module wall_end() {
+            translate([- s_wall / 2, 0, 0])
+                cube([s_wall * 2, wall, height]);
+        }
+
+        module separator_wall_hole() {
+            translate([- 1, lattice_border + wall, 2 * lattice_border])
+                rotate([90, 0, 90])
+                    linear_extrude(wall + 2)
+                        polygon([
+                                [0, 0], [lattice_w, 0], [lattice_w, lattice_h],
+                                [lattice_w - lattice_top_w, lattice_h], [0, lattice_front_h]
+                            ]);
+        }
+    }
+}
+
 bottom();
 side_wall();
 mirror_offset() { side_wall(); }
 front_wall();
 middle_wall();
+separator_walls();
 back_wall();
