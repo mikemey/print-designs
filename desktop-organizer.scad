@@ -55,6 +55,12 @@ module bevel_mask(len, c = cham, orient = ORIENT_X) {
     chamfer_mask(len, c, orient = orient, center = false);
 }
 
+module mirror_offset(offset = length) {
+    translate([offset, 0, 0])
+        mirror([1, 0, 0])
+            children();
+}
+
 module side_wall() {
     lattice_side_hole_w = width - back_width - 3 * wall - 2 * lattice_border;
     lattice_side_hole_h = height - 3 * lattice_border;
@@ -81,7 +87,13 @@ module side_wall() {
             front_incline_mask();
             side_wall_hole();
         }
-        side_wall_lattice();
+        difference() {
+            union() {
+                side_wall_lattice();
+                side_wall_front_wall_border();
+            }
+            front_incline_mask();
+        }
     }
 
     module side_wall_hole() {
@@ -97,12 +109,15 @@ module side_wall() {
     }
 
     module side_wall_lattice() {
-        difference() {
-            translate([wall, lattice_border, 2 * lattice_border])
-                rotate([0, 0, 90])
-                    lattice([lattice_side_hole_w, wall, lattice_side_hole_h], lattice_width, lattice_hole);
-            front_incline_mask();
-        }
+        translate([wall, lattice_border, 2 * lattice_border])
+            rotate([0, 0, 90])
+                lattice([lattice_side_hole_w, wall, lattice_side_hole_h], lattice_width, lattice_hole);
+    }
+
+    module side_wall_front_wall_border() {
+        filler_len = lattice_border + wall;
+        translate([0, front_width - lattice_border / 2, 0])
+            cube([wall, filler_len, height]);
     }
 
     module chamfer_side_wall() {
@@ -214,6 +229,45 @@ module bottom() {
     }
 }
 
+module front_wall() {
+    front_wall_z = incline_height + (front_width + wall) * tan(incline_angle);
+
+    difference() {
+        translate([0, front_width, 0]) {
+            cube([length, wall, 2 * lattice_border]);
+            front_side_wall();
+            mirror_offset() { front_side_wall(); }
+            front_top_wall();
+            front_lattice();
+        }
+        front_incline_mask();
+        chamfer_front_wall();
+    }
+
+    module front_side_wall() {
+        translate([wall - cham, 0, 0])
+            cube([lattice_border + cham, wall, height]);
+    }
+
+    module front_top_wall() {
+        top_wall_h = 2 * lattice_border;
+        z_offset = front_wall_z - top_wall_h;
+        translate([lattice_border, 0, z_offset]) {
+            cube([length - 2 * lattice_border, wall, top_wall_h]);
+        }
+    }
+
+    module front_lattice() {
+        translate([lattice_border, 0, 2 * lattice_border])
+            lattice([length - 2 * lattice_border, wall, front_wall_z - 4 * lattice_border], lattice_width, lattice_hole);
+    }
+
+    module chamfer_front_wall() {
+        translate([0, front_width + wall - cham, front_wall_z - cham])
+            cube([length, cham + 1, cham]);
+    }
+}
+
 module middle_wall() {
     middle_len = length - 2 * middle_bevel - 2 * middle_shoulder_length;
     wall_y = middle_y + middle_bevel - wall;
@@ -257,10 +311,7 @@ module back_wall() {
     translate([back_bevel + back_shoulder_length, wall_y, 0]) {
         straight_wall();
         angled_wall();
-        translate([full_len, 0, 0])
-            mirror([1, 0, 0])
-                angled_wall();
-
+        mirror_offset(full_len) { angled_wall(); }
     }
 
     module straight_wall() {
@@ -301,8 +352,7 @@ module back_wall() {
 
 bottom();
 side_wall();
-translate([length, 0, 0])
-    mirror([1, 0, 0])
-        side_wall();
+mirror_offset() { side_wall(); }
+front_wall();
 middle_wall();
 back_wall();
