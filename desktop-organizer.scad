@@ -1,5 +1,6 @@
 include <libs/BOSL/constants.scad>
 use <libs/BOSL/masks.scad>
+use <libs/BOSL/shapes.scad>
 use <basics/lattice_wall.scad>
 
 wall = 4;
@@ -25,6 +26,10 @@ lattice_hole = 8.8;
 
 middle_shoulder_length = 12;
 back_shoulder_length = 10;
+
+back_hole_height = 25;
+back_hole_upper_len = 50;
+back_hole_lower_len = 35;
 
 SIDE_X = [wall, 0, 0];
 SIDE_Y = [0, wall, 0];
@@ -241,7 +246,57 @@ module middle_wall() {
 }
 
 module back_wall() {
+    full_len = length - 2 * back_bevel - 2 * back_shoulder_length;
+    assert(back_hole_upper_len <= full_len, str("Back hole upper gap can't be longer than full length (w/o shoulders): ", full_len));
+    assert(back_hole_lower_len <= back_hole_upper_len, str("Back hole lower gap can't be longer than upper gap: ", back_hole_upper_len));
 
+    upper_part = (full_len - back_hole_upper_len) / 2;
+    lower_part = (full_len - back_hole_lower_len) / 2;
+    wall_y = width - wall;
+
+    translate([back_bevel + back_shoulder_length, wall_y, 0]) {
+        straight_wall();
+        angled_wall();
+        translate([full_len, 0, 0])
+            mirror([1, 0, 0])
+                angled_wall();
+
+    }
+
+    module straight_wall() {
+        difference() {
+            cube([full_len, wall, back_hole_height]);
+            translate([0, 0, back_hole_height])
+                both_side_of_wall(SIDE_Y) {
+                    bevel_mask(full_len);
+                }
+        }
+    }
+
+    module angled_wall() {
+        p_height = back_height - back_hole_height;
+        lower_part_at_bottom = ((lower_part - upper_part) / p_height * back_height) + upper_part;
+
+        lower_size = [lower_part_at_bottom, wall];
+        upper_size = [upper_part, wall];
+        shift = [- (lower_part_at_bottom - upper_part) / 2, 0];
+
+        difference() {
+            prismoid(lower_size, upper_size, back_height, shift, align = V_RIGHT + V_BACK + V_UP);
+            translate([0, 0, back_height]) {
+                both_side_of_wall(SIDE_Y) {
+                    bevel_mask(upper_part);
+                }
+                translate([upper_part, 0, 0]) {
+                    a = atan(p_height / (lower_part - upper_part));
+                    rotate([0, a, 0])
+                        both_side_of_wall(SIDE_Y) {
+                            bevel_mask(back_height * 2);
+                        }
+                }
+            }
+        }
+    }
 }
 
 bottom();
