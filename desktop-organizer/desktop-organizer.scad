@@ -1,7 +1,7 @@
-include <libs/BOSL/constants.scad>
-use <libs/BOSL/masks.scad>
-use <libs/BOSL/shapes.scad>
-use <basics/lattice_wall.scad>
+include <../libs/BOSL/constants.scad>
+use <../libs/BOSL/masks.scad>
+use <../libs/BOSL/shapes.scad>
+use <../basics/lattice_wall.scad>
 
 wall = 4;
 length = 95;
