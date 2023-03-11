@@ -3,46 +3,74 @@ use <../libs/BOSL/masks.scad>
 use <../libs/BOSL/shapes.scad>
 use <../basics/lattice_wall.scad>
 
+// main wall thickness
 wall = 4;
+// full length
 length = 95;
+// full width
 width = 88;
+// full height
 height = 83;
 
+// height of back wall
 back_height = 58;
+// width of back hole
 back_width = 18;
+// width of front panel
 front_width = 23;
+// height of front panel
 front_panel_height = 10;
+// notch width + height of front frame to hold front panel
 front_panel_notch = 2;
 
 assert(front_panel_notch <= wall, "Notch of front panel needs to be smaller than wall thickness");
 
+// main wall chamfer
 cham = 1.1;
+// bevel of back wall
 back_bevel = 6;
+// bevel of middle wall
 middle_bevel = 8;
 
+// height of front incline starting point
 incline_height = 42;
+// angle of front incline
 incline_angle = 45;
+// angle of back and middle bevel
 bevel_angle = 45;
 
+// border around all lattices
 lattice_border = 7;
+// outer lattice rungs width
 lattice_width = 4;
+// outer lattice holes width
 lattice_hole = 8.2;
 
+// middle shoulder length (from bevel end to lattice)
 middle_shoulder_length = 12;
+// back shoulder length (from bevel end to back wall start)
 back_shoulder_length = 10;
 
+// height of back hole
 back_hole_height = 25;
+// length of top of back hole
 back_hole_upper_len = 50;
+// length of bottom of back hole
 back_hole_lower_len = 35;
 
+// separator walls thickness
 separator_wall = 2;
+// array for separator positions
 separator_wall_offsets = [length / 3, length * 2 / 3];
+// separator walls height
 separator_wall_height = height - 5;
+// separator walls lattices rungs width
 separator_wall_lattice_width = 3;
+// separator walls lattices holes width
 separator_wall_lattice_hole = 5;
 
 USB_A_SIZE = [5, 12.5, front_panel_height + 2];
-USB_C_SIZE = [8.8, 3, front_panel_height + 2];
+USB_C_SIZE = [8.8, 2.9, front_panel_height + 2];
 SD_CARD_SIZE = [24.5, 2.5, front_panel_height + 2];
 
 SIDE_X = [wall, 0, 0];
@@ -225,7 +253,6 @@ module side_wall() {
         translate([back_bevel, width, back_height])
             rotate([0, 0, - bevel_angle])
                 bevel_correction();
-
     }
 }
 
