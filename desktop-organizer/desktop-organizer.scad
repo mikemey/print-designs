@@ -20,8 +20,10 @@ back_width = 18;
 front_width = 23;
 // height of front panel
 front_panel_height = 10;
-// notch width + height of front frame to hold front panel
+// notch width + height of front frame to hold front inset
 front_panel_notch = 2;
+// distance between front panel frame and front inset
+front_panel_tolerance = 0.2;
 
 assert(front_panel_notch <= wall, "Notch of front panel needs to be smaller than wall thickness");
 
@@ -464,10 +466,14 @@ module front_frame() {
     }
 }
 
-module front_panel() {
+module front_inset() {
+    inset_notch = wall - front_panel_notch;
+    inset_length = length - 2 * wall - 2 * front_panel_tolerance;
+    inset_width = front_width - 2 * inset_notch - 2 * front_panel_tolerance;
     difference() {
-        translate([wall / 2, 0, 0])
-            cube([length - wall, front_width, front_panel_height]);
+        translate([wall + front_panel_tolerance, inset_notch + front_panel_tolerance, 0]) {
+            basic_inset();
+        }
         translate([0, front_width / 2, front_panel_height / 2]) {
             translate([USB_A_SIZE.x * 2, 0, 0])
                 usb_a();
@@ -486,6 +492,16 @@ module front_panel() {
                 translate([0, - y_offset, 0])
                     sd_card();
             }
+        }
+    }
+
+    module basic_inset() {
+        difference() {
+            cube([inset_length, inset_width, front_panel_height]);
+            translate([- 1, - 1, - 1])
+                cube([inset_length + 2, front_panel_notch + 1, front_panel_height - front_panel_notch + 1]);
+            translate([- 1, inset_width - front_panel_notch, - 1])
+                cube([inset_length + 2, front_panel_notch + 1, front_panel_height - front_panel_notch + 1]);
         }
     }
 
@@ -523,5 +539,6 @@ module organizer() {
 }
 
 organizer();
-translate([0, - 1.5 * front_width, 0])
-    front_panel();
+//color("red")
+//    translate([0, - 1.5 * front_width, 0])
+front_inset();
