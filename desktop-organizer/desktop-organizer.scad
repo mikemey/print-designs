@@ -32,6 +32,7 @@ back_hole_height = 25;
 back_hole_upper_len = 50;
 back_hole_lower_len = 35;
 
+separator_wall = 2;
 separator_wall_offsets = [length / 3, length * 2 / 3];
 separator_wall_height = height - 5;
 separator_wall_lattice_width = 3;
@@ -362,7 +363,6 @@ module back_wall() {
 }
 
 module separator_walls() {
-    s_wall = wall / 2;
     wall_y_len = width - back_width - front_width - wall;
 
     lattice_w = wall_y_len - 2 * wall - 2 * lattice_border;
@@ -387,20 +387,20 @@ module separator_walls() {
     module separator_wall(offset) {
         difference() {
             union() {
-                cube([s_wall, wall_y_len, height]);
+                cube([separator_wall, wall_y_len, height]);
                 wall_end();
                 translate([0, wall_y_len - wall, 0])
                     wall_end();
             }
             separator_wall_hole();
         }
-        translate([s_wall, lattice_border + wall, 2 * lattice_border])
+        translate([separator_wall, lattice_border + wall, 2 * lattice_border])
             rotate([0, 0, 90])
-                lattice([lattice_w, s_wall, lattice_h], separator_wall_lattice_width, separator_wall_lattice_hole);
+                lattice([lattice_w, separator_wall, lattice_h], separator_wall_lattice_width, separator_wall_lattice_hole);
 
         module wall_end() {
-            translate([- s_wall / 2, 0, 0])
-                cube([s_wall * 2, wall, height]);
+            translate([- separator_wall / 2, 0, 0])
+                cube([separator_wall * 2, wall, height]);
         }
 
         module separator_wall_hole() {
