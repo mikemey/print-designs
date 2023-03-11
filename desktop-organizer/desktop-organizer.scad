@@ -191,7 +191,8 @@ module side_wall() {
     }
 
     module middle_shoulder() {
-        translate([middle_bevel, middle_y + wall, 0]) {
+        wall_y = width - back_width - 2 * wall;
+        translate([middle_bevel, wall_y, 0]) {
             difference() {
                 cube([middle_shoulder_length, wall, height]);
                 translate([0, 0, height])
