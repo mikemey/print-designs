@@ -12,6 +12,9 @@ back_height = 58;
 back_width = 18;
 front_width = 23;
 front_panel_height = 10;
+front_panel_notch = 2;
+
+assert(front_panel_notch <= wall, "Notch of front panel needs to be smaller than wall thickness");
 
 cham = 1.1;
 back_bevel = 6;
@@ -416,6 +419,24 @@ module separator_walls() {
     }
 }
 
+module front_frame() {
+    frame_length = length - wall;
+    translate([wall / 2, 0, 0]) {
+        frame_wall();
+        translate([frame_length, front_width, 0])
+            rotate([0, 0, 180])
+                frame_wall();
+    }
+
+    module frame_wall() {
+        difference() {
+            cube([frame_length, wall, front_panel_height]);
+            translate([0, wall - front_panel_notch, front_panel_height - front_panel_notch])
+                cube([frame_length, front_panel_notch + 1, front_panel_notch + 1]);
+        }
+    }
+}
+
 module front_panel() {
     difference() {
         translate([wall / 2, 0, 0])
@@ -463,11 +484,17 @@ module front_panel() {
     }
 }
 
-bottom();
-side_wall();
-mirror_offset() { side_wall(); }
-front_wall();
-middle_wall();
-separator_walls();
-back_wall();
-front_panel();
+module organizer() {
+    bottom();
+    side_wall();
+    mirror_offset() { side_wall(); }
+    front_wall();
+    middle_wall();
+    separator_walls();
+    back_wall();
+    front_frame();
+}
+
+organizer();
+translate([0, - 1.5 * front_width, 0])
+    front_panel();
