@@ -4,31 +4,31 @@ use <../libs/BOSL/shapes.scad>
 use <../basics/lattice_wall.scad>
 
 // main wall thickness
-wall = 4;
+wall = 2;
 // full length
-length = 95;
+length = 125;
 // full width
-width = 88;
+width = 115;
 // full height
-height = 83;
+height = 90;
 
 // height of back wall
-back_height = 58;
+back_height = 65;
 // width of back hole
-back_width = 18;
+back_width = 38;
 // width of front panel
-front_width = 23;
+front_width = 28;
 // height of front panel
 front_panel_height = 10;
 // notch width + height of front frame to hold front inset
 front_panel_notch = 2;
 // distance between front panel frame and front inset
-front_panel_tolerance = 0.2;
+front_panel_tolerance = 0.25;
 
 assert(front_panel_notch <= wall, "Notch of front panel needs to be smaller than wall thickness");
 
 // main wall chamfer
-cham = 1.1;
+cham = 0.5;
 // bevel of back wall
 back_bevel = 6;
 // bevel of middle wall
@@ -44,17 +44,17 @@ bevel_angle = 45;
 // border around all lattices
 lattice_border = 7;
 // outer lattice rungs width
-lattice_width = 4;
+lattice_width = 5.9;
 // outer lattice holes width
-lattice_hole = 8.2;
+lattice_hole = 8.7;
 
 // middle shoulder length (from bevel end to lattice)
-middle_shoulder_length = 12;
+middle_shoulder_length = 6.5;
 // back shoulder length (from bevel end to back wall start)
 back_shoulder_length = 10;
 
 // height of back hole
-back_hole_height = 25;
+back_hole_height = 35;
 // length of top of back hole
 back_hole_upper_len = 50;
 // length of bottom of back hole
@@ -63,13 +63,13 @@ back_hole_lower_len = 35;
 // separator walls thickness
 separator_wall = 2;
 // array for separator positions
-separator_wall_offsets = [length / 3, length * 2 / 3];
+separator_wall_offsets = [length / 3 - separator_wall / 2, length * 2 / 3 - separator_wall / 2];
 // separator walls height
-separator_wall_height = height - 5;
+separator_wall_height = height - 3;
 // separator walls lattices rungs width
-separator_wall_lattice_width = 3;
+separator_wall_lattice_width = 5.9;
 // separator walls lattices holes width
-separator_wall_lattice_hole = 5;
+separator_wall_lattice_hole = 8.7;
 
 USB_A_SIZE = [5, 12.5, front_panel_height + 2];
 USB_C_SIZE = [8.8, 2.9, front_panel_height + 2];
@@ -409,7 +409,7 @@ module separator_walls() {
         translate([0, front_width, 0])
             for (offset = separator_wall_offsets) {
                 translate([offset, 0, 0])
-                    separator_wall(offset);
+                    separator_wall();
             }
         translate([0, 0, separator_wall_height - height])
             front_incline_mask();
@@ -417,7 +417,7 @@ module separator_walls() {
             cube([length, width, height]);
     }
 
-    module separator_wall(offset) {
+    module separator_wall() {
         difference() {
             union() {
                 cube([separator_wall, wall_y_len, height]);
@@ -474,18 +474,22 @@ module front_inset() {
         translate([wall + front_panel_tolerance, inset_notch + front_panel_tolerance, 0]) {
             basic_inset();
         }
-        translate([0, front_width / 2, front_panel_height / 2]) {
+        translate([USB_A_SIZE.x * 0.2, front_width / 2, front_panel_height / 2]) {
             translate([USB_A_SIZE.x * 2, 0, 0])
                 usb_a();
             translate([USB_A_SIZE.x * 4, 0, 0])
                 usb_a();
             translate([USB_A_SIZE.x * 6, 0, 0])
                 usb_a();
-            translate([USB_A_SIZE.x * 8.3, 0, 0])
+            translate([USB_A_SIZE.x * 8, 0, 0])
+                usb_a();
+            translate([USB_A_SIZE.x * 10.5, 0, 0])
                 double_usb_c();
-            translate([USB_A_SIZE.x * 11, 0, 0])
+            translate([USB_A_SIZE.x * 13.5, 0, 0])
                 double_usb_c();
-            translate([USB_A_SIZE.x * 15.1, 0, 0]) {
+            translate([USB_A_SIZE.x * 16.5, 0, 0])
+                double_usb_c();
+            translate([USB_A_SIZE.x * 20.8, 0, 0]) {
                 y_offset = SD_CARD_SIZE.y * 1.5;
                 translate([0, y_offset, 0])
                     sd_card();
