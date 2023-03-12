@@ -49,7 +49,7 @@ plate_hole_r = 30;
 // x offset of plate hole circle
 plate_hole_x_offset = - 16;
 
-text_size = 6;
+text_size = 8;
 text_offset = 6;
 
 front_strut_l = clip_wall / tan(front_angle);
@@ -102,9 +102,10 @@ module extension_base() {
         }
 
         module plate_number() {
-            translate([plate_length + text_size / 2 + text_offset, outer_w / 2, plate_height])
+            translate([plate_length + text_size / 2 + text_offset, outer_w / 2, plate_height * 2 / 3])
                 rotate([0, 0, 90])
-                    text(str(trimmer), size = text_size, halign = "center", valign = "center");
+                    linear_extrude(text_size)
+                        text(str(trimmer), size = text_size, halign = "center", valign = "center");
         }
     }
 
