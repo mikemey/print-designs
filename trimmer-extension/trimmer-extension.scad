@@ -214,13 +214,29 @@ module spacers() {
         flange_bottom_thickness = trimmer * flange_factor;
         translate([- spacer_flange_overshoot, 0, 0]) {
             difference() {
-                rotate([0, 90, 0])
-                    linear_extrude(spacer_flange_overshoot)
-                        scale([1, flange_factor, 1])
-                            circle(r = trimmer);
-                translate([0, - flange_bottom_thickness, - trimmer])
-                    cube([spacer_flange_overshoot, 2 * flange_bottom_thickness, trimmer]);
+                union() {
+                    spacer_flange_body();
+                    spacer_flange_rounded_head();
+                }
+                spacer_flange_cutoff();
             }
+        }
+
+        module spacer_flange_body() {
+            rotate([0, 90, 0])
+                linear_extrude(spacer_flange_overshoot)
+                    scale([1, flange_factor, 1])
+                        circle(r = trimmer);
+        }
+
+        module spacer_flange_rounded_head() {
+            scale([flange_factor, flange_factor, 1])
+                sphere(r = trimmer);
+        }
+
+        module spacer_flange_cutoff() {
+            translate([- spacer_flange_overshoot, - flange_bottom_thickness, - trimmer])
+                cube([2 * spacer_flange_overshoot, 2 * flange_bottom_thickness, trimmer]);
         }
     }
 
