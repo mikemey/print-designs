@@ -6,15 +6,17 @@ use <../libs/BOSL/transforms.scad>
 $fn = 64;
 
 // trimming length
-trimmer = 9;
+trimming_length = 11;
 // spacer count
 spacer_count = 6;
 // thickness factor of spacers - depending on trimmer length
-spacer_w_factor = 0.15;
+spacer_w_factor = 0.12;
 // overlap of spacers to plate
 spacer_overlap = 8.8;
 // distance between centers of outer spacers
 spacers_w = 30.5;
+// flange length at head of spacer
+spacer_flange_overshoot = 5;
 
 // total width
 outer_w = 42;
@@ -49,8 +51,12 @@ plate_hole_r = 30;
 // x offset of plate hole circle
 plate_hole_x_offset = - 16;
 
+text_font = "arial:style=Bold";
 text_size = 8;
 text_offset = 6;
+
+razor_blade_distance = 2;
+trimmer = trimming_length - razor_blade_distance;
 
 front_strut_l = clip_wall / tan(front_angle);
 spacer_start_y = (outer_w - spacers_w) / 2;
@@ -105,7 +111,7 @@ module extension_base() {
             translate([plate_length + text_size / 2 + text_offset, outer_w / 2, plate_height * 2 / 3])
                 rotate([0, 0, 90])
                     linear_extrude(text_size)
-                        text(str(trimmer), size = text_size, halign = "center", valign = "center");
+                        text(str(trimming_length), size = text_size, halign = "center", valign = "center", font = text_font);
         }
     }
 
@@ -182,16 +188,39 @@ module spacers() {
         translate([- razor_x_offset, 0, cutout_h]) {
             scale([1, spacer_w_factor, 1])
                 sphere(r = trimmer);
-            rotate([0, 90, 0])
-                linear_extrude(plate_length + plate_half_circle_r)
-                    scale([1, spacer_w_factor, 1])
-                        circle(r = trimmer);
+            spacer_top_half();
+            spacer_bottom_triangle();
+            spacer_flange();
+        }
+    }
 
-            angled_spacer_len = cutout_h / sin(front_angle);
-            rotate([0, front_angle + 90, 0])
-                linear_extrude(angled_spacer_len)
-                    scale([1, spacer_w_factor, 1])
-                        circle(r = trimmer);
+    module spacer_top_half() {
+        rotate([0, 90, 0])
+            linear_extrude(plate_length + plate_half_circle_r)
+                scale([1, spacer_w_factor, 1])
+                    circle(r = trimmer);
+    }
+
+    module spacer_bottom_triangle() {
+        angled_spacer_len = cutout_h / sin(front_angle);
+        rotate([0, front_angle + 90, 0])
+            linear_extrude(angled_spacer_len)
+                scale([1, spacer_w_factor, 1])
+                    circle(r = trimmer);
+    }
+
+    module spacer_flange() {
+        flange_factor = spacer_w_factor * 0.8;
+        flange_bottom_thickness = trimmer * flange_factor;
+        translate([- spacer_flange_overshoot, 0, 0]) {
+            difference() {
+                rotate([0, 90, 0])
+                    linear_extrude(spacer_flange_overshoot)
+                        scale([1, flange_factor, 1])
+                            circle(r = trimmer);
+                translate([0, - flange_bottom_thickness, - trimmer])
+                    cube([spacer_flange_overshoot, 2 * flange_bottom_thickness, trimmer]);
+            }
         }
     }
 
@@ -208,5 +237,4 @@ module spacers() {
 }
 
 extension_base();
-//color("#ff000055")
 spacers();
