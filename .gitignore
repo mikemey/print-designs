@@ -2,5 +2,6 @@
 
 *.iml
 .idea
-libs
+libs/*
+!libs/placeholder
 target
