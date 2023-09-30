@@ -1,25 +1,26 @@
 // number of pegs
-clip_count = 9; // [1:60]
+clip_count = 11; // [1:60]
 
 // Width of one peg
-clip_width = 18;
+clip_width = 15;
 
 // Length of the pegs
 clip_length = 40;
 
 // Thickness of the peg walls 
-clip_wall = 2.1;
+clip_wall = 2.8;
 
 // Height
-clip_height = 4;
-clip_distance = 6;
+clip_height = 5;
+clip_distance = 4;
 
 // Space between the pegs.
-gap = 1;
+gap = .7;
 
 rod_diameter = 14.5;
 rod_radius = rod_diameter * 0.5;
-rod_wall = 2.45; // thickness of the rod clip wall
+// rod_wall = 2.45; // thickness of the rod clip wall
+rod_wall = 4; // thickness of the rod clip wall
 
 //rod_hole_count = 4;
 rod_hole_count = 4;
@@ -28,9 +29,10 @@ rod_hole_distance = 8;
 rod_hole_width = 6.5;
 //rod_hole_width = clip_width;
 
+rod_bevel_angle = 30;
 
 // Opening angle of the rod clip
-alpha = 120; // [0.0:180.0]
+alpha = 115; // [0.0:180.0]
 
 $fn = 32;
 
@@ -155,8 +157,8 @@ union() {
                 }
                 
                 // rod bevel
-                translate([rod_radius - rod_wall, -rod_radius - rod_wall * 4, 0])
-                rotate([0, 0, 30])
+                translate([0, -(rod_radius + rod_wall * 4) / cos(rod_bevel_angle), 0])
+                rotate([0, 0, rod_bevel_angle])
                 cube([rod_wall * 6, rod_wall * 3, l]);
                 
                 // rod holes
