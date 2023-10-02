@@ -15,7 +15,7 @@ clip_height = 5;
 clip_distance = 4;
 
 // Space between the pegs.
-gap = .7;
+gap = .9;
 
 rod_diameter = 14.5;
 rod_radius = rod_diameter * 0.5;
