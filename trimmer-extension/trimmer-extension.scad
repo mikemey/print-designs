@@ -10,13 +10,13 @@ trimming_length = 11;
 // spacer count
 spacer_count = 6;
 // thickness factor of spacers - depending on trimmer length
-spacer_w_factor = 0.12;
+spacer_w_factor = 0.08;
 // overlap of spacers to plate
 spacer_overlap = 8.8;
 // distance between centers of outer spacers
 spacers_w = 30.5;
 // flange length at head of spacer
-spacer_flange_overshoot = 5;
+spacer_flange_overshoot = 7;
 
 // total width
 outer_w = 42;
@@ -210,7 +210,7 @@ module spacers() {
     }
 
     module spacer_flange() {
-        flange_factor = spacer_w_factor * 0.8;
+        flange_factor = spacer_w_factor * 0.7;
         flange_bottom_thickness = trimmer * flange_factor;
         translate([- spacer_flange_overshoot, 0, 0]) {
             difference() {
@@ -230,7 +230,7 @@ module spacers() {
         }
 
         module spacer_flange_rounded_head() {
-            scale([flange_factor, flange_factor, 1])
+            scale([flange_factor * 2, flange_factor, 1])
                 sphere(r = trimmer);
         }
 
