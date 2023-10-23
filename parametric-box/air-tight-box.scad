@@ -37,6 +37,11 @@ hinge_support_cutout_w = 2.5;
 hinge_support_cutout_spacing = [0.2, 0.4, 0.6, 0.8];
 hinge_tolerance = 0.15;
 
+latch_w = 3;
+latch_l = 8;
+latch_r = 2;
+
+// ========= derived values =========
 inner_w = base_w + 2 * inner_r;
 inner_l = base_l + 2 * inner_r;
 
@@ -44,6 +49,10 @@ outer_r = inner_r + wall;
 outer_w = base_w + 2 * outer_r;
 outer_l = base_l + 2 * outer_r;
 
+// brim offset from x/y axes:
+brim_offset = brim_w - wall;
+// height of brim which is straight
+flat_brim_h = brim_h - brim_offset;
 outer_brim_r = inner_r + brim_w;
 outer_brim_w = base_w + 2 * outer_brim_r;
 outer_brim_l = base_l + 2 * outer_brim_r;
@@ -54,9 +63,6 @@ hinge_support_w = hinge_r * 2 + hinge_distance + brim_w;
 hinge_offset_y = outer_l / 2 - hinge_bottom_l / 2;
 
 module half_box(seal_hole_tolerance, height) {
-    // brim offset from x/y axes:
-    brim_offset = brim_w - wall;
-
     module box_walls() {
         cube_rounded_edges(outer_w, outer_l, height, outer_r);
     }
@@ -92,8 +98,6 @@ module half_box(seal_hole_tolerance, height) {
     }
 
     module brim() {
-        flat_brim_h = brim_h - brim_offset;
-
         module brim_base() {
             size = [outer_brim_w, outer_brim_l, flat_brim_h];
             translate([- brim_offset, - brim_offset, height - flat_brim_h])
@@ -254,6 +258,41 @@ module seal(w, h) {
     }
 }
 
+module latch(height) {
+    offset_y = outer_l / 2 - latch_l / 2;
+    offset_z = latch_w + brim_w;
+    flat_height = flat_brim_h * 2 + latch_r / cos(45);
+
+    module latch_support() {
+        translate([- brim_w, 0, - offset_z])
+            rotate([90, 0, 90])
+                prism_right_triangle(latch_l, offset_z, offset_z);
+    }
+
+    module latch_snap() {
+        top_height = latch_w / 2 * tan(30);
+        translate([0, 0, flat_height]) {
+            rotate([- 90, 0, 0])
+                cylinder(h = latch_l, r = latch_r);
+            translate([0, 0, latch_r]) {
+                translate([latch_w, 0, 0])
+                    rotate([0, 0, 90])
+                        prism_right_triangle(latch_l, latch_w / 2, top_height);
+                translate([0, latch_l, 0])
+                    rotate([0, 0, - 90])
+                        prism_right_triangle(latch_l, latch_w / 2, top_height);
+
+            }
+        }
+    }
+
+    translate([outer_w + brim_offset, offset_y, height - flat_brim_h]) {
+        cube([latch_w, latch_l, flat_height + latch_r]);
+        latch_support();
+        latch_snap();
+    }
+}
+
 half_box(0, bottom_h) {
     bottom_hinge(bottom_h);
 }
@@ -262,6 +301,7 @@ translate([hinge_offset_x * 2, outer_l, bottom_h - top_h])
     rotate([0, 0, 180])
         half_box(seal_tolerance, top_h) {
             top_hinge(top_h);
+            latch(top_h);
         }
 
 translate([outer_w * 1.5, 0, 0])
