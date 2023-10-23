@@ -19,22 +19,23 @@ brace_spacing = [0.35, 0.65];
 
 brim_w = 2.5 * wall;
 brim_h = 5;
-notch_h = 1;
-notch_wall = 1;
-// tolerance between notch and notch-hole
-notch_tolerance = 0.5;
+// seal height in brim, twice for full seal
+seal_h = 1;
+seal_wall = 1;
+// tolerance between seal and seal-hole
+seal_tolerance = 0.1;
 
-snap_bottom_l = 20;
-snap_r = 2;
-snap_notch_r = 1;
-snap_top_l = 6;
-// distance of snap to brim:
-snap_distance = 0.2;
+hinge_bottom_l = 20;
+hinge_r = 2;
+hinge_notch_r = 1;
+hinge_top_l = 6;
+// distance of hinge to brim:
+hinge_distance = 0.2;
 
-// define cutouts of snap-support:
-snap_support_cutout_w = 2.5;
-snap_support_cutout_spacing = [0.2, 0.4, 0.6, 0.8];
-snap_tolerance = 0.15;
+// define cutouts of hinge-support:
+hinge_support_cutout_w = 2.5;
+hinge_support_cutout_spacing = [0.2, 0.4, 0.6, 0.8];
+hinge_tolerance = 0.15;
 
 inner_w = base_w + 2 * inner_r;
 inner_l = base_l + 2 * inner_r;
@@ -47,12 +48,12 @@ outer_brim_r = inner_r + brim_w;
 outer_brim_w = base_w + 2 * outer_brim_r;
 outer_brim_l = base_l + 2 * outer_brim_r;
 
-// snap center x offset from 0
-snap_offset_x = wall - brim_w - snap_r - snap_distance;
-snap_support_w = snap_r * 2 + snap_distance + brim_w;
-snap_offset_y = outer_l / 2 - snap_bottom_l / 2;
+// hinge center x offset from 0
+hinge_offset_x = wall - brim_w - hinge_r - hinge_distance;
+hinge_support_w = hinge_r * 2 + hinge_distance + brim_w;
+hinge_offset_y = outer_l / 2 - hinge_bottom_l / 2;
 
-module half_box(notch_hole_tolerance, height) {
+module half_box(seal_hole_tolerance, height) {
     // brim offset from x/y axes:
     brim_offset = brim_w - wall;
 
@@ -135,28 +136,11 @@ module half_box(notch_hole_tolerance, height) {
         angled_brim_corners();
     }
 
-    module notch_hole(tolerance) {
-        notch_hole_w = notch_wall + tolerance;
-        notch_offset = wall - brim_w / 2 - notch_hole_w / 2;
-        translate([notch_offset, notch_offset, height - notch_h])
-            notch(notch_hole_w, notch_h);
-
-        module notch(w, h) {
-            notch_offset = brim_w / 2 - w / 2;
-            notch_inner_w = inner_w + 2 * notch_offset;
-            notch_inner_l = inner_l + 2 * notch_offset;
-            notch_inner_r = inner_r + notch_offset;
-
-            notch_outer_w = notch_inner_w + 2 * w;
-            notch_outer_l = notch_inner_l + 2 * w;
-            notch_outer_r = notch_inner_r + w;
-
-            difference() {
-                cube_rounded_edges(notch_outer_w, notch_outer_l, h, notch_outer_r);
-                translate([w, w, - 1])
-                    cube_rounded_edges(notch_inner_w, notch_inner_l, h + 2, notch_inner_r);
-            }
-        }
+    module seal_hole(tolerance) {
+        seal_hole_w = seal_wall + tolerance;
+        seal_offset = wall - brim_w / 2 - seal_hole_w / 2;
+        translate([seal_offset, seal_offset, height - seal_h])
+            seal(seal_hole_w, seal_h);
     }
 
     difference() {
@@ -167,84 +151,84 @@ module half_box(notch_hole_tolerance, height) {
             children();
         }
         inner_cutout();
-        notch_hole(notch_hole_tolerance);
+        seal_hole(seal_hole_tolerance);
     }
 }
 
-module bottom_snap(height) {
-    module snap_rod() {
+module bottom_hinge(height) {
+    module hinge_rod() {
         rotate([- 90, 0, 0])
-            cylinder(h = snap_bottom_l, r = snap_r);
-        sphere(r = snap_notch_r);
-        translate([0, snap_bottom_l, 0])
-            sphere(r = snap_notch_r);
+            cylinder(h = hinge_bottom_l, r = hinge_r);
+        sphere(r = hinge_notch_r);
+        translate([0, hinge_bottom_l, 0])
+            sphere(r = hinge_notch_r);
     }
 
-    module snap_support_cutouts() {
-        translate([- snap_r, 0, - height])
-            for (offset = snap_support_cutout_spacing) {
-                offset_y = offset * snap_bottom_l - snap_support_cutout_w / 2;
+    module hinge_support_cutouts() {
+        translate([- hinge_r, 0, - height])
+            for (offset = hinge_support_cutout_spacing) {
+                offset_y = offset * hinge_bottom_l - hinge_support_cutout_w / 2;
                 translate([0, offset_y, 0])
-                    cube([snap_support_w * 2, snap_support_cutout_w, height * 2]);
+                    cube([hinge_support_w * 2, hinge_support_cutout_w, height * 2]);
             }
     }
 
-    translate([snap_offset_x, snap_offset_y, height]) {
-        snap_rod();
+    translate([hinge_offset_x, hinge_offset_y, height]) {
+        hinge_rod();
         difference() {
-            snap_support(snap_bottom_l);
-            snap_support_cutouts();
+            hinge_support(hinge_bottom_l);
+            hinge_support_cutouts();
         }
     }
 }
 
-module top_snap(height) {
-    module snap_rod(hole_front) {
-        hole_y = hole_front ? 0 : snap_top_l;
-        snap_rotation = hole_front ? 0: 180;
+module top_hinge(height) {
+    module hinge_rod(hole_front) {
+        hole_y = hole_front ? 0 : hinge_top_l;
+        hinge_rotation = hole_front ? 0: 180;
         difference() {
             union() {
                 rotate([- 90, 0, 0])
-                    cylinder(h = snap_top_l, r = snap_r);
-                snap_support(snap_top_l);
+                    cylinder(h = hinge_top_l, r = hinge_r);
+                hinge_support(hinge_top_l);
             }
             translate([0, hole_y, 0])
-                sphere(r = snap_notch_r);
-            rotate([0, 0, snap_rotation])
-                snap_slide();
+                sphere(r = hinge_notch_r);
+            rotate([0, 0, hinge_rotation])
+                hinge_slide_in_hole();
         }
 
-        module snap_slide() {
-            snap_factor = 0.8;
-            snap_slide_x = 2 * snap_notch_r * snap_factor;
-            snap_slide_y = snap_notch_r * snap_factor;
-            snap_slide_r = snap_slide_y * snap_factor;
+        module hinge_slide_in_hole() {
+            hinge_factor = 0.8;
+            hinge_slide_x = 2 * hinge_notch_r * hinge_factor;
+            hinge_slide_y = hinge_notch_r * hinge_factor;
+            hinge_slide_r = hinge_slide_y;
 
-            translate([- snap_slide_x / 2, - hole_y, 0])
+            translate([- hinge_slide_x / 2, - hole_y, 0])
                 difference() {
-                    cube([snap_slide_x, snap_slide_y, snap_r]);
-                    translate([0, snap_slide_y, 0]) {
-                        fillet_mask_z(snap_r, snap_slide_r, align = V_UP);
-                        translate([snap_slide_x, 0, 0])
-                            fillet_mask_z(snap_r, snap_slide_r, align = V_UP);
+                    cube([hinge_slide_x, hinge_slide_y, hinge_r]);
+                    translate([0, hinge_slide_y, 0]) {
+                        fillet_mask_z(hinge_r, hinge_slide_r, align = V_UP);
+                        translate([hinge_slide_x, 0, 0])
+                            fillet_mask_z(hinge_r, hinge_slide_r, align = V_UP);
                     }
                 }
         }
     }
 
-    front_snap_offset_y = snap_offset_y - snap_top_l - snap_tolerance;
-    back_snap_offset_y = snap_offset_y + snap_bottom_l + snap_tolerance;
+    front_hinge_offset_y = hinge_offset_y - hinge_top_l - hinge_tolerance;
+    back_hinge_offset_y = hinge_offset_y + hinge_bottom_l + hinge_tolerance;
 
-    translate([snap_offset_x, front_snap_offset_y, height])
-        snap_rod(false);
-    translate([snap_offset_x, back_snap_offset_y, height])
-        snap_rod(true);
+    translate([hinge_offset_x, front_hinge_offset_y, height])
+        hinge_rod(false);
+    translate([hinge_offset_x, back_hinge_offset_y, height])
+        hinge_rod(true);
 }
 
-module snap_support(length) {
-    support_offset_h = snap_r * cos(45);
-    support_w = snap_r + snap_distance + brim_w;
-    support_prism_w = support_w + snap_r * sin(45);
+module hinge_support(length) {
+    support_offset_h = hinge_r * cos(45);
+    support_w = hinge_r + hinge_distance + brim_w;
+    support_prism_w = support_w + hinge_r * sin(45);
     translate([0, 0, - support_offset_h]) {
         cube([support_w, length, support_offset_h]);
         translate([support_w, length, - support_prism_w])
@@ -253,12 +237,32 @@ module snap_support(length) {
     }
 }
 
-half_box(0, bottom_h) {
-    bottom_snap(bottom_h);
+module seal(w, h) {
+    seal_offset = brim_w / 2 - w / 2;
+    seal_inner_w = inner_w + 2 * seal_offset;
+    seal_inner_l = inner_l + 2 * seal_offset;
+    seal_inner_r = inner_r + seal_offset;
+
+    seal_outer_w = seal_inner_w + 2 * w;
+    seal_outer_l = seal_inner_l + 2 * w;
+    seal_outer_r = seal_inner_r + w;
+
+    difference() {
+        cube_rounded_edges(seal_outer_w, seal_outer_l, h, seal_outer_r);
+        translate([w, w, - 1])
+            cube_rounded_edges(seal_inner_w, seal_inner_l, h + 2, seal_inner_r);
+    }
 }
 
-translate([snap_offset_x * 2, outer_l, bottom_h - top_h])
+half_box(0, bottom_h) {
+    bottom_hinge(bottom_h);
+}
+
+translate([hinge_offset_x * 2, outer_l, bottom_h - top_h])
     rotate([0, 0, 180])
-        half_box(notch_tolerance, top_h) {
-            top_snap(top_h);
+        half_box(seal_tolerance, top_h) {
+            top_hinge(top_h);
         }
+
+translate([outer_w * 1.5, 0, 0])
+    seal(seal_wall, seal_h * 2);
