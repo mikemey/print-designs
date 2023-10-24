@@ -293,16 +293,27 @@ module latch(height) {
     }
 }
 
-half_box(0, bottom_h) {
-    bottom_hinge(bottom_h);
+module bottom_cutoff() {
+    max_l = max(outer_l, outer_w);
+    translate([- max_l * 2, 0, - max_l])
+        cube([max_l * 4, max_l, max_l]);
 }
 
-translate([hinge_offset_x * 2, outer_l, bottom_h - top_h])
-    rotate([0, 0, 180])
-        half_box(seal_tolerance, top_h) {
-            top_hinge(top_h);
-            latch(top_h);
+difference() {
+    union() {
+        half_box(0, bottom_h) {
+            bottom_hinge(bottom_h);
         }
 
-translate([outer_w * 1.5, 0, 0])
-    seal(seal_wall, seal_h * 2);
+        translate([hinge_offset_x * 2, outer_l, bottom_h - top_h])
+            rotate([0, 0, 180])
+                half_box(seal_tolerance, top_h) {
+                    top_hinge(top_h);
+                    latch(top_h);
+                }
+
+        translate([outer_w * 1.5, 0, 0])
+            seal(seal_wall, seal_h * 2);
+    }
+    bottom_cutoff();
+}
