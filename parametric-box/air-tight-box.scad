@@ -371,6 +371,18 @@ difference() {
 
         translate([outer_w * 1.5, 0, 0])
             seal(seal_wall, seal_h * 2);
+
+        opposing_brim_base();
     }
     floor_cutoff();
+}
+
+module opposing_brim_base() {
+    color("#99444477")
+        translate([- outer_brim_w + 2 * hinge_offset_x + brim_offset, - brim_offset, bottom_h])
+            difference() {
+                cube_rounded_edges(outer_brim_w, outer_brim_l, brim_h, outer_brim_r);
+                translate([(outer_brim_w - inner_w) / 2, (outer_brim_l - inner_l) / 2, - 0.001])
+                    cube_rounded_edges(inner_w, inner_l, brim_h + 0.002, inner_r);
+            }
 }
