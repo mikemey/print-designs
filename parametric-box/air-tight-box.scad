@@ -8,18 +8,18 @@ $fn = 128;
 print_line_w = 0.35;
 wall = print_line_w * 4;
 
-base_w = 50;
-base_l = 85;
-bottom_h = 25;
-top_h = 15;
+base_w = 20;
+base_l = 30;
+bottom_h = 15;
+top_h = 10;
 inner_r = 4;
 
-brace_w = 8;
+brace_w = 4;
 brace_spacing = [0.35, 0.65];
 
 brim_w = 3 * wall;
 // height of straight part of brim
-brim_h = 5;
+brim_h = 4;
 // angle of all angled surfaces (bottom brim, -braces and hinge supports)
 angle = 35;
 
@@ -29,16 +29,16 @@ seal_wall = 1;
 // tolerance between seal and seal-hole
 seal_tolerance = 0.2;
 
-hinge_bottom_l = 20;
+hinge_bottom_l = 15;
 hinge_r = 2.5;
-hinge_notch_r = 1.8;
-hinge_top_l = 6;
+hinge_notch_r = 1.6;
+hinge_top_l = 5;
 // distance of hinge to brim:
 hinge_distance = 1;
 // distance of top hinge to bottom hinge:
-hinge_tolerance = 0.3;
+hinge_tolerance = 0.4;
 // percentage of hinge_notch_r for hole to slide in hinge-notch
-hinge_hole_factor = 0.85;
+hinge_hole_factor = 0.75;
 
 // define cutouts of hinge-support:
 hinge_support_cutout_w = 3;
@@ -66,6 +66,28 @@ outer_brim_l = base_l + 2 * outer_brim_r;
 hinge_offset_x = wall - brim_w - hinge_r - hinge_distance;
 hinge_support_w = hinge_r * 2 + hinge_distance + brim_w;
 hinge_offset_y = outer_l / 2 - hinge_bottom_l / 2;
+
+
+difference() {
+    union() {
+        half_box(0, bottom_h, true) {
+            bottom_hinge(bottom_h);
+        }
+
+//        translate([hinge_offset_x * 2, outer_l, bottom_h - top_h])
+//            rotate([0, 0, 180])
+//                half_box(seal_tolerance, top_h) {
+//                    top_hinge(top_h);
+//                    latch(top_h);
+//                }
+//
+//        translate([outer_w * 1.5, 0, 0])
+//            seal(seal_wall, seal_h * 2);
+//
+//        opposing_brim_base();
+    }
+    floor_cutoff();
+}
 
 function angled_height(w) = w / tan(angle);
 
@@ -348,33 +370,12 @@ module floor_cutoff() {
     }
     module top_box_floor() {
         floor_height = bottom_h - top_h;
-        translate([- outer_w * 1.1 + 2 * hinge_offset_x, - outer_l * 0.1, 0])
-            cube([outer_w * 1.2, outer_l * 1.2, floor_height]);
+        translate([- outer_w * 1.1 + 2 * hinge_offset_x, - outer_l * 0.1, - floor_height])
+            cube([outer_w * 1.2, outer_l * 1.2, floor_height * 2]);
     }
 
     bottom_box_floor();
     top_box_floor();
-}
-
-difference() {
-    union() {
-        half_box(0, bottom_h, true) {
-            bottom_hinge(bottom_h);
-        }
-
-        translate([hinge_offset_x * 2, outer_l, bottom_h - top_h])
-            rotate([0, 0, 180])
-                half_box(seal_tolerance, top_h) {
-                    top_hinge(top_h);
-                    latch(top_h);
-                }
-
-        translate([outer_w * 1.5, 0, 0])
-            seal(seal_wall, seal_h * 2);
-
-        opposing_brim_base();
-    }
-    floor_cutoff();
 }
 
 module opposing_brim_base() {
