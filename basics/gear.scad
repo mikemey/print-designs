@@ -11,12 +11,12 @@ module teeth_holes(radius, height, teeth_count, teeth_height, teeth_top_length, 
     rot = 360 / teeth_count;
     outer_dist = arc_length(radius, rot) - teeth_top_length;
 
-    linear_extrude(height)
-        for (i = [0:teeth_count]) {
-            rotate([0, 0, i * rot])
-                translate([0, - radius, 0])
-                    teeth_hole(teeth_height, outer_dist, teeth_bottom_distance);
-        }
+    translate([0, 0, - 1])
+        linear_extrude(height + 2)
+            for (i = [0:teeth_count])
+                rotate([0, 0, i * rot])
+                    translate([0, - radius, 0])
+                        teeth_hole(teeth_height, outer_dist, teeth_bottom_distance);
 }
 
 function arc_length(radius, angle) = radius * angle * (PI / 180);
