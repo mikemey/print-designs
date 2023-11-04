@@ -44,9 +44,9 @@ hinge_hole_factor = 0.75;
 hinge_support_cutout_w = 3;
 hinge_support_cutout_spacing = [0.3, 0.7];
 
-latch_w = 2;
-latch_l = 8;
-latch_r = 1;
+latch_w = 2.81;
+latch_l = 10;
+latch_r = 0.7;
 
 // ========= derived values =========
 inner_w = base_w + 2 * inner_r;
@@ -74,17 +74,17 @@ difference() {
             bottom_hinge(bottom_h);
         }
 
-//        translate([hinge_offset_x * 2, outer_l, bottom_h - top_h])
-//            rotate([0, 0, 180])
-//                half_box(seal_tolerance, top_h) {
-//                    top_hinge(top_h);
-//                    latch(top_h);
-//                }
-//
-//        translate([outer_w * 1.5, 0, 0])
-//            seal(seal_wall, seal_h * 2);
-//
-//        opposing_brim_base();
+        translate([hinge_offset_x * 2, outer_l, bottom_h - top_h])
+            rotate([0, 0, 180])
+                half_box(seal_tolerance, top_h) {
+                    top_hinge(top_h);
+                    latch(top_h);
+                }
+
+        //        translate([outer_w * 1.5, 0, 0])
+        //            seal(seal_wall, seal_h * 2);
+        //
+        //        opposing_brim_base();
     }
     floor_cutoff();
 }
@@ -92,6 +92,17 @@ difference() {
 function angled_height(w) = w / tan(angle);
 
 module half_box(seal_hole_tolerance, height, add_latch_hole = false) {
+    difference() {
+        union() {
+            box_walls();
+            box_braces();
+            brim();
+            children();
+        }
+        inner_cutout();
+        seal_hole(seal_hole_tolerance);
+    }
+
     module box_walls() {
         cube_rounded_edges(outer_w, outer_l, height, outer_r);
     }
@@ -214,17 +225,6 @@ module half_box(seal_hole_tolerance, height, add_latch_hole = false) {
         seal_offset = wall - brim_w / 2 - seal_hole_w / 2;
         translate([seal_offset, seal_offset, height - seal_h])
             seal(seal_hole_w, seal_h);
-    }
-
-    difference() {
-        union() {
-            box_walls();
-            box_braces();
-            brim();
-            children();
-        }
-        inner_cutout();
-        seal_hole(seal_hole_tolerance);
     }
 }
 
