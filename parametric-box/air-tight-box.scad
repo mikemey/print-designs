@@ -44,9 +44,11 @@ hinge_hole_factor = 0.75;
 hinge_support_cutout_w = 3;
 hinge_support_cutout_spacing = [0.3, 0.7];
 
-latch_w = 2.81;
+latch_w = 3;
 latch_l = 10;
-latch_r = 0.7;
+latch_r = 1.3;
+// distance of latch to brim wall
+latch_brim_distance = 0.5;
 
 // ========= derived values =========
 inner_w = base_w + 2 * inner_r;
@@ -330,13 +332,19 @@ module seal(w, h) {
 module latch(height) {
     offset_y = outer_l / 2 - latch_l / 2;
     offset_z = latch_w + brim_w;
-    flat_height = brim_h * 2 + latch_r;
+    flat_height = brim_h * 2 + sqrt(latch_r ^ 2 - latch_brim_distance ^ 2);
+
+    translate([outer_w + brim_offset + latch_brim_distance, offset_y, height - brim_h]) {
+        cube([latch_w, latch_l, flat_height + latch_r]);
+        latch_support();
+        latch_snap();
+    }
 
     module latch_support() {
-        support_h = angled_height(offset_z);
-        translate([- brim_w, 0, - support_h])
-            rotate([90, 0, 90])
-                prism_right_triangle(latch_l, support_h, offset_z);
+        support_h = angled_height(height);
+        translate([latch_w, 0, 0])
+            rotate([0, 180 + angle, 0])
+                cube([latch_w, latch_l, support_h]);
     }
 
     module latch_snap() {
@@ -354,12 +362,6 @@ module latch(height) {
 
             }
         }
-    }
-
-    translate([outer_w + brim_offset, offset_y, height - brim_h]) {
-        cube([latch_w, latch_l, flat_height + latch_r]);
-        latch_support();
-        latch_snap();
     }
 }
 
